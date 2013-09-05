@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"fmt"
 	"monitor/xmltools"
 	"os"
 )
@@ -36,5 +37,8 @@ func RaiseAlert(alertMessage string) {
 		HostName:   thisHostName,
 		Detail:     alertMessage,
 	}
-	xmltools.DumpXML(alertData)
+	alertString := xmltools.CreateAlert(alertData)
+
+	// TODO: Implement client connection
+	fmt.Printf(alertString)
 }
