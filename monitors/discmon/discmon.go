@@ -10,14 +10,16 @@ package discmon
 import (
 	"bufio"
 	"fmt"
+	"monitor/tools"
 	"os"
 	"strings"
+	"strconv"
 	"syscall"
 )
 
 // Type DiscConfig contains the relevant information for a filesystem.
 type DiscConfig struct {
-	FilesytemName string
+	FilesystemName string
 	Ignore        bool
 	Warn          int
 	Crit          int
@@ -43,7 +45,8 @@ type FileSystemInfo struct {
 // and then the warn and critical percentages.
 func configMonitor(fileName string) Filesystems {
 	thisDiscConfig := DiscConfig{}
-	fileSystems := Filsystems{}
+	fileSystems := Filesystems{}
+	var thisInt int64
 
 	configFile, err := os.Open(fileName)
 	if err != nil {
@@ -58,8 +61,10 @@ func configMonitor(fileName string) Filesystems {
 		if lineSplit[1] == "T" {
 			thisDiscConfig.Ignore = true
 		}
-		thisDiscConfig.Warn = int(lineSplit[2])
-		thisDiscConfig.Crit = int(lineSplit[3])
+		thisInt, _ = strconv.ParseInt(lineSplit[2], 10, 0) 
+		thisDiscConfig.Warn = int(thisInt)
+		thisInt, _ = strconv.ParseInt(lineSplit[3], 10, 0)
+		thisDiscConfig.Crit = int(thisInt)
 		fileSystems.DiscConfigs = append(fileSystems.DiscConfigs, thisDiscConfig)
 	}
 
@@ -69,7 +74,7 @@ func configMonitor(fileName string) Filesystems {
 // getFsInfo returns the current information about a given filesystem.
 func getFsInfo(fileSystem string) FileSystemInfo {
 	var thisFstatFS syscall.Statfs_t
-	thisFsInfo := FileSystemInfo{FileSystemName: fileSystem}
+	thisFsInfo := FileSystemInfo{FilesystemName: fileSystem}
 
 	thisFile, err := os.Open(fileSystem)
 	if err != nil {
@@ -78,10 +83,10 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 	defer thisFile.Close()
 
 	thisFd := thisFile.Fd()
-	syscall.Fstatfs(&thisFd, &thisFstatFS)
+	syscall.Fstatfs(int(thisFd), &thisFstatFS)
 
-	thisPercentUsed = ((thisFstatFS.Blocks - thisFstatFS.Bavail) / thisFstatFS.Blocks) * 100
-	thisFsInfo.PercentUsed = int(thisPercentUsed)
+	thisPercentUsed := int((float64(thisFstatFS.Blocks - thisFstatFS.Bavail) / float64(thisFstatFS.Blocks)) * 100)
+	thisFsInfo.PercentUsed = thisPercentUsed
 
 	return thisFsInfo
 }
@@ -89,6 +94,27 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 // RunChecks performs the checks required by this monitor. It returns
 // a boolean value to denote whether an alert has been raised.
 func RunChecks() bool {
+	thisFilesystems := configMonitor("/tmp/discmon.cfg")
+	var thisFsInfo FileSystemInfo
+	var alertString string
+	var alertRaised bool
+
+	for _, thisFs := range thisFilesystems.DiscConfigs {
+		if thisFs.Ignore {
+			continue
+		}
+		thisFsInfo = getFsInfo(thisFs.FilesystemName)
+		if thisFsInfo.PercentUsed >= thisFs.Crit {
+			alertString = ("DiscMon: " + thisFs.FilesystemName + " is at " + strconv.Itoa(thisFsInfo.PercentUsed) + " Percent")
+			tools.RaiseAlert(alertString, 99)
+			alertRaised = true
+		} else if thisFsInfo.PercentUsed >= thisFs.Warn {
+
+			alertString = ("DiscMon: " + thisFs.FilesystemName + " is at " + strconv.Itoa(thisFsInfo.PercentUsed) + " Percent")
+			tools.RaiseAlert(alertString, 50)
+			alertRaised = true
+		}
+	}
 
 	return alertRaised
 }

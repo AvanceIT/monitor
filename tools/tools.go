@@ -30,14 +30,14 @@ func getMonitorName(alertMessage string) (string, string) {
 
 // RaiseAlert formats the alertString into an XML message
 // and passes it to the monitoring server
-func RaiseAlert(alertMessage string) {
+func RaiseAlert(alertMessage string, alertLevel int) {
 	var monitorName string
 	thisHostName, _ := os.Hostname()
 
 	monitorName, alertMessage = getMonitorName(alertMessage)
 	alertData := xmltools.MonResult{
 		MonName:    monitorName,
-		AlertLevel: 99,
+		AlertLevel: alertLevel,
 		HostName:   thisHostName,
 		Detail:     alertMessage,
 	}

@@ -4,10 +4,10 @@ package procmon
 import (
 	"bufio"
 	"fmt"
+	"monitor/tools"
 	"os"
 	"os/exec"
 	"strings"
-	"monitor/tools"
 )
 
 type processes struct {
@@ -97,7 +97,7 @@ func RunChecks() bool {
 		}
 		if !processFound {
 			alertString = ("ProcMon: " + checkProcesses.ProcessName + " not running for user " + checkProcesses.ProcessOwner)
-			tools.RaiseAlert(alertString)
+			tools.RaiseAlert(alertString, 99)
 			alertRaised = true
 		}
 		processFound = false
