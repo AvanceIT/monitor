@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 )
 
 // Type DiscConfig contains the relevant information for a filesystem.
@@ -24,6 +25,12 @@ type DiscConfig struct {
 
 type Filesystems struct {
 	DiscConfigs []DiscConfig
+}
+
+// Type FileSystemInfo contains the current usage of a filesystem.
+type FileSystemInfo struct {
+	FilesystemName string
+	PercentUsed    int
 }
 
 // configMonitor reads the given configuration file and populates a
@@ -57,6 +64,26 @@ func configMonitor(fileName string) Filesystems {
 	}
 
 	return fileSystems
+}
+
+// getFsInfo returns the current information about a given filesystem.
+func getFsInfo(fileSystem string) FileSystemInfo {
+	var thisFstatFS syscall.Statfs_t
+	thisFsInfo := FileSystemInfo{FileSystemName: fileSystem}
+
+	thisFile, err := os.Open(fileSystem)
+	if err != nil {
+		fmt.Printf("discmon: error opening filesystem:\n\t%v\n", err)
+	}
+	defer thisFile.Close()
+
+	thisFd := thisFile.Fd()
+	syscall.Fstatfs(&thisFd, &thisFstatFS)
+
+	thisPercentUsed = ((thisFstatFS.Blocks - thisFstatFS.Bavail) / thisFstatFS.Blocks) * 100
+	thisFsInfo.PercentUsed = int(thisPercentUsed)
+
+	return thisFsInfo
 }
 
 // RunChecks performs the checks required by this monitor. It returns
