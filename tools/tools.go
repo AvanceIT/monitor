@@ -1,3 +1,7 @@
+/*
+Package tools provides various functions for working with
+the monitors and alerts in the monitoring client.
+*/
 package tools
 
 import (
@@ -39,6 +43,6 @@ func RaiseAlert(alertMessage string) {
 	}
 	alertString := xmltools.CreateAlert(alertData)
 
-	// TODO: Implement client connection
+	// TODO(JP): Implement client connection in RaiseAlert()
 	fmt.Printf(alertString)
 }
