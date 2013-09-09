@@ -12,17 +12,17 @@ import (
 	"fmt"
 	"monitor/tools"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
 // Type DiscConfig contains the relevant information for a filesystem.
 type DiscConfig struct {
 	FilesystemName string
-	Ignore        bool
-	Warn          int
-	Crit          int
+	Ignore         bool
+	Warn           int
+	Crit           int
 }
 
 type Filesystems struct {
@@ -66,7 +66,7 @@ func configMonitor(fileName string) Filesystems {
 		if lineSplit[1] == "T" {
 			thisDiscConfig.Ignore = true
 		}
-		thisInt, _ = strconv.ParseInt(lineSplit[2], 10, 0) 
+		thisInt, _ = strconv.ParseInt(lineSplit[2], 10, 0)
 		thisDiscConfig.Warn = int(thisInt)
 		thisInt, _ = strconv.ParseInt(lineSplit[3], 10, 0)
 		thisDiscConfig.Crit = int(thisInt)
@@ -90,7 +90,8 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 	thisFd := thisFile.Fd()
 	syscall.Fstatfs(int(thisFd), &thisFstatFS)
 
-	thisPercentUsed := int((float64(thisFstatFS.Blocks - thisFstatFS.Bavail) / float64(thisFstatFS.Blocks)) * 100)
+	thisPercentUsed := int((float64(thisFstatFS.Blocks-thisFstatFS.Bavail) /
+		float64(thisFstatFS.Blocks)) * 100)
 	thisFsInfo.PercentUsed = thisPercentUsed
 
 	return thisFsInfo
@@ -110,12 +111,14 @@ func RunChecks() bool {
 		}
 		thisFsInfo = getFsInfo(thisFs.FilesystemName)
 		if thisFsInfo.PercentUsed >= thisFs.Crit {
-			alertString = ("DiscMon: " + thisFs.FilesystemName + " is at " + strconv.Itoa(thisFsInfo.PercentUsed) + " Percent")
+			alertString = ("DiscMon: " + thisFs.FilesystemName + " is at " +
+				strconv.Itoa(thisFsInfo.PercentUsed) + " Percent")
 			tools.RaiseAlert(alertString, 99)
 			alertRaised = true
 		} else if thisFsInfo.PercentUsed >= thisFs.Warn {
 
-			alertString = ("DiscMon: " + thisFs.FilesystemName + " is at " + strconv.Itoa(thisFsInfo.PercentUsed) + " Percent")
+			alertString = ("DiscMon: " + thisFs.FilesystemName + " is at " +
+				strconv.Itoa(thisFsInfo.PercentUsed) + " Percent")
 			tools.RaiseAlert(alertString, 50)
 			alertRaised = true
 		}
