@@ -47,6 +47,7 @@ func configMonitor(fileName string) Filesystems {
 	thisDiscConfig := DiscConfig{}
 	fileSystems := Filesystems{}
 	var thisInt int64
+	var thisLine string
 
 	configFile, err := os.Open(fileName)
 	if err != nil {
@@ -56,7 +57,11 @@ func configMonitor(fileName string) Filesystems {
 
 	thisScanner := bufio.NewScanner(configFile)
 	for thisScanner.Scan() {
-		lineSplit := strings.Split(thisScanner.Text(), "::")
+		thisLine = thisScanner.Text()
+		if thisLine[0] == '#' {
+			continue
+		}
+		lineSplit := strings.Split(thisLine, "::")
 		thisDiscConfig.FilesystemName = lineSplit[0]
 		if lineSplit[1] == "T" {
 			thisDiscConfig.Ignore = true

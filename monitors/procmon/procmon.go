@@ -30,6 +30,7 @@ func configMonitor(fileName string) configOptions {
 	HostName, _ := os.Hostname()
 	configuration := configOptions{HostName: HostName}
 	thisProcesses := processes{}
+	var thisLine string
 
 	configFile, err := os.Open(fileName)
 	if err != nil {
@@ -39,7 +40,11 @@ func configMonitor(fileName string) configOptions {
 
 	thisScanner := bufio.NewScanner(configFile)
 	for thisScanner.Scan() {
-		lineSplit := strings.Split(thisScanner.Text(), "::")
+		thisLine = thisScanner.Text()
+		if thisLine[0] == '#' {
+			continue
+		}
+		lineSplit := strings.Split(thisLine, "::")
 		thisProcesses.ProcessName = lineSplit[0]
 		thisProcesses.ProcessOwner = lineSplit[1]
 		configuration.Processes = append(configuration.Processes, thisProcesses)
