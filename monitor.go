@@ -4,7 +4,7 @@ package main
 import (
 	"fmt"
 	"monitor/monitors/procmon"
-	"monitor/monitors/discmon"
+	"monitor/monitors/fsmon"
 )
 
 func main() {
@@ -12,7 +12,7 @@ func main() {
 		fmt.Println("No procmon alerts")
 	}
 
-	if !discmon.RunChecks() {
-		fmt.Println("No discmon alerts")
+	if !fsmon.RunChecks() {
+		fmt.Println("No fsmon alerts")
 	}
 }

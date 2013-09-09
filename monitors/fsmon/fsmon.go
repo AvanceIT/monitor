@@ -1,11 +1,11 @@
 /*
-Package discmon provides the monitor to check current filesystem levels.
+Package fsmon provides the monitor to check current filesystem levels.
 
 A configuration file defines the filesystems to check and the warning and
 critical levels. It also has an ignore flag should the filesystem usage
 be due to a known situation.
 */
-package discmon
+package fsmon
 
 import (
 	"bufio"
@@ -17,8 +17,8 @@ import (
 	"syscall"
 )
 
-// Type DiscConfig contains the relevant information for a filesystem.
-type DiscConfig struct {
+// Type FsConfig contains the relevant information for a filesystem.
+type FsConfig struct {
 	FilesystemName string
 	Ignore         bool
 	Warn           int
@@ -26,7 +26,7 @@ type DiscConfig struct {
 }
 
 type Filesystems struct {
-	DiscConfigs []DiscConfig
+	FsConfigs []FsConfig
 }
 
 // Type FileSystemInfo contains the current usage of a filesystem.
@@ -44,7 +44,7 @@ type FileSystemInfo struct {
 // which is the filesystem path followed by the ignore flag (T or F)
 // and then the warn and critical percentages.
 func configMonitor(fileName string) Filesystems {
-	thisDiscConfig := DiscConfig{}
+	thisFsConfig := FsConfig{}
 	fileSystems := Filesystems{}
 	var thisInt int64
 	var thisLine string
@@ -62,15 +62,15 @@ func configMonitor(fileName string) Filesystems {
 			continue
 		}
 		lineSplit := strings.Split(thisLine, "::")
-		thisDiscConfig.FilesystemName = lineSplit[0]
+		thisFsConfig.FilesystemName = lineSplit[0]
 		if lineSplit[1] == "T" {
-			thisDiscConfig.Ignore = true
+			thisFsConfig.Ignore = true
 		}
 		thisInt, _ = strconv.ParseInt(lineSplit[2], 10, 0)
-		thisDiscConfig.Warn = int(thisInt)
+		thisFsConfig.Warn = int(thisInt)
 		thisInt, _ = strconv.ParseInt(lineSplit[3], 10, 0)
-		thisDiscConfig.Crit = int(thisInt)
-		fileSystems.DiscConfigs = append(fileSystems.DiscConfigs, thisDiscConfig)
+		thisFsConfig.Crit = int(thisInt)
+		fileSystems.FsConfigs = append(fileSystems.FsConfigs, thisFsConfig)
 	}
 
 	return fileSystems
@@ -83,7 +83,7 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 
 	thisFile, err := os.Open(fileSystem)
 	if err != nil {
-		fmt.Printf("discmon: error opening filesystem:\n\t%v\n", err)
+		fmt.Printf("fsmon: error opening filesystem:\n\t%v\n", err)
 	}
 	defer thisFile.Close()
 
@@ -100,12 +100,12 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 // RunChecks performs the checks required by this monitor. It returns
 // a boolean value to denote whether an alert has been raised.
 func RunChecks() bool {
-	thisFilesystems := configMonitor("/tmp/discmon.cfg")
+	thisFilesystems := configMonitor("/tmp/fsmon.cfg")
 	var thisFsInfo FileSystemInfo
 	var alertString string
 	var alertRaised bool
 
-	for _, thisFs := range thisFilesystems.DiscConfigs {
+	for _, thisFs := range thisFilesystems.FsConfigs {
 		if thisFs.Ignore {
 			continue
 		}
