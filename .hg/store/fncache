@@ -1,0 +1,7 @@
+data/monitors/discmon/discmon.go.i
+data/monitors/fsmon/fsmon.go.i
+data/xmltools/xmltools.go.i
+data/tools/tools.go.i
+data/monitor.go.i
+data/monitors/procmon/procmon.go.i
+data/README.md.i
