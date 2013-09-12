@@ -3,8 +3,8 @@ package main
 
 import (
 	"fmt"
-	"monitor/monitors/procmon"
-	"monitor/monitors/fsmon"
+	"github.com/AvanceIT/monitor/monitors/procmon"
+	"github.com/AvanceIT/monitor/monitors/fsmon"
 )
 
 func main() {
