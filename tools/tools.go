@@ -6,7 +6,7 @@ package tools
 
 import (
 	"fmt"
-	"monitor/xmltools"
+	"github.com/AvanceIT/monitor/xmltools"
 	"os"
 )
 

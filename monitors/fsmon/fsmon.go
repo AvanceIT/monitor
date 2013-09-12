@@ -10,7 +10,7 @@ package fsmon
 import (
 	"bufio"
 	"fmt"
-	"monitor/tools"
+	"github.com/AvanceIT/monitor/tools"
 	"os"
 	"strconv"
 	"strings"

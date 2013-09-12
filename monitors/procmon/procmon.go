@@ -4,7 +4,7 @@ package procmon
 import (
 	"bufio"
 	"fmt"
-	"monitor/tools"
+	"github.com/AvanceIT/monitor/tools"
 	"os"
 	"os/exec"
 	"strings"
