@@ -64,6 +64,7 @@ func getProcessList() []string {
 // RunChecks performs the checks required by this monitor. It returns
 // boolean value to denote whether an alert has been raised.
 func RunChecks() bool {
+	tools.Logger(monName, "Starting")
 	processList := getProcessList()
 	var runningProcesses []processes
 	var processFound bool
@@ -81,6 +82,7 @@ func RunChecks() bool {
 	}
 
 	for _, checkProcesses := range thisConfig.Processes {
+		tools.Logger(monName, "checking " + checkProcesses.ProcessName)
 		for _, eachRunningProcess := range runningProcesses {
 			if checkProcesses.ProcessName == eachRunningProcess.ProcessName {
 				if checkProcesses.ProcessOwner == eachRunningProcess.ProcessOwner {
@@ -96,5 +98,6 @@ func RunChecks() bool {
 		processFound = false
 	}
 
+	tools.Logger(monName, "Completed")
 	return alertRaised
 }

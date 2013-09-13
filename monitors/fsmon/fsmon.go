@@ -88,6 +88,7 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 // RunChecks performs the checks required by this monitor. It returns
 // a boolean value to denote whether an alert has been raised.
 func RunChecks() bool {
+	tools.Logger(monName, "Starting")
 	thisFilesystems := configMonitor()
 	var thisFsInfo FileSystemInfo
 	var alertString string
@@ -97,6 +98,7 @@ func RunChecks() bool {
 		if thisFs.Ignore {
 			continue
 		}
+		tools.Logger(monName, "checking " + thisFs.FilesystemName)
 		thisFsInfo = getFsInfo(thisFs.FilesystemName)
 		if thisFsInfo.PercentUsed >= thisFs.Crit {
 			alertString = ("FsMon: " + thisFs.FilesystemName + " is at " +
@@ -111,6 +113,7 @@ func RunChecks() bool {
 			alertRaised = true
 		}
 	}
+	tools.Logger(monName, "Completed")
 
 	return alertRaised
 }
