@@ -2,13 +2,13 @@
 package procmon
 
 import (
-	"bufio"
-	"fmt"
 	"github.com/AvanceIT/monitor/tools"
 	"os"
 	"os/exec"
 	"strings"
 )
+
+var monName string = "procmon"
 
 type processes struct {
 	ProcessName  string
@@ -26,28 +26,16 @@ type configOptions struct {
 // monitored in the following format: -
 //
 // process::owner
-func configMonitor(fileName string) configOptions {
+func configMonitor() configOptions {
 	HostName, _ := os.Hostname()
 	configuration := configOptions{HostName: HostName}
-	thisProcesses := processes{}
-	var thisLine string
+	thisProcess := processes{}
 
-	configFile, err := os.Open(fileName)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-	}
-	defer configFile.Close()
-
-	thisScanner := bufio.NewScanner(configFile)
-	for thisScanner.Scan() {
-		thisLine = thisScanner.Text()
-		if thisLine[0] == '#' {
-			continue
-		}
-		lineSplit := strings.Split(thisLine, "::")
-		thisProcesses.ProcessName = lineSplit[0]
-		thisProcesses.ProcessOwner = lineSplit[1]
-		configuration.Processes = append(configuration.Processes, thisProcesses)
+	cl := tools.ReadConfig(monName)
+	for _, l := range cl {
+		thisProcess.ProcessName = l.Fields[0]
+		thisProcess.ProcessOwner = l.Fields[1]
+		configuration.Processes = append(configuration.Processes, thisProcess)
 	}
 
 	return configuration
@@ -81,7 +69,7 @@ func RunChecks() bool {
 	var processFound bool
 	var alertRaised bool
 	var alertString string
-	thisConfig := configMonitor("/tmp/procmon.cfg")
+	thisConfig := configMonitor()
 
 	for _, processListLine := range processList {
 		processListFields := strings.Fields(processListLine)

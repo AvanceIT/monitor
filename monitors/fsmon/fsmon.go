@@ -8,14 +8,14 @@ be due to a known situation.
 package fsmon
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/AvanceIT/monitor/tools"
 	"os"
 	"strconv"
-	"strings"
 	"syscall"
 )
+
+var monName string = "fsmon"
 
 // Type FsConfig contains the relevant information for a filesystem.
 type FsConfig struct {
@@ -43,32 +43,20 @@ type FileSystemInfo struct {
 //
 // which is the filesystem path followed by the ignore flag (T or F)
 // and then the warn and critical percentages.
-func configMonitor(fileName string) Filesystems {
+func configMonitor() Filesystems {
 	thisFsConfig := FsConfig{}
 	fileSystems := Filesystems{}
 	var thisInt int64
-	var thisLine string
 
-	configFile, err := os.Open(fileName)
-	if err != nil {
-		fmt.Printf("fsmon: Error opening config file:\n\t%v\n", err)
-	}
-	defer configFile.Close()
-
-	thisScanner := bufio.NewScanner(configFile)
-	for thisScanner.Scan() {
-		thisLine = thisScanner.Text()
-		if thisLine[0] == '#' {
-			continue
-		}
-		lineSplit := strings.Split(thisLine, "::")
-		thisFsConfig.FilesystemName = lineSplit[0]
-		if lineSplit[1] == "T" {
+	cl := tools.ReadConfig(monName)
+	for _, l := range cl {
+		thisFsConfig.FilesystemName = l.Fields[0]
+		if l.Fields[1] == "T" {
 			thisFsConfig.Ignore = true
 		}
-		thisInt, _ = strconv.ParseInt(lineSplit[2], 10, 0)
+		thisInt, _ = strconv.ParseInt(l.Fields[2], 10, 0)
 		thisFsConfig.Warn = int(thisInt)
-		thisInt, _ = strconv.ParseInt(lineSplit[3], 10, 0)
+		thisInt, _ = strconv.ParseInt(l.Fields[3], 10, 0)
 		thisFsConfig.Crit = int(thisInt)
 		fileSystems.FsConfigs = append(fileSystems.FsConfigs, thisFsConfig)
 	}
@@ -83,7 +71,7 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 
 	thisFile, err := os.Open(fileSystem)
 	if err != nil {
-		fmt.Printf("fsmon: error opening filesystem:\n\t%v\n", err)
+		fmt.Printf("%s: error opening filesystem:\n\t%v\n", monName, err)
 	}
 	defer thisFile.Close()
 
@@ -100,7 +88,7 @@ func getFsInfo(fileSystem string) FileSystemInfo {
 // RunChecks performs the checks required by this monitor. It returns
 // a boolean value to denote whether an alert has been raised.
 func RunChecks() bool {
-	thisFilesystems := configMonitor("/tmp/fsmon.cfg")
+	thisFilesystems := configMonitor()
 	var thisFsInfo FileSystemInfo
 	var alertString string
 	var alertRaised bool
