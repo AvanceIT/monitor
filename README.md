@@ -8,3 +8,4 @@ Checks
 
 * fsmon - raise a warning or critical alert depending on how full the filesystem is
 * procmon - raise an alert if a given process is not running
+* httpmin - raise an alert if a URL is not available
