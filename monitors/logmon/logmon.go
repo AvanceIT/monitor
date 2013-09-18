@@ -29,7 +29,7 @@ func configMonitor() configOptions {
 	return config
 }
 
-func checkFile(lf string) {
+func checkFile(lf string) (alerted bool) {
 	tools.Logger(monName, "Checking "+lf)
 	lfile, err := os.Open(lf)
 	if err != nil {
@@ -45,20 +45,26 @@ func checkFile(lf string) {
 			alertString := monName + ": Error found in " + lf + " :: " + tl
 			tools.RaiseAlert(alertString, 99)
 			tools.Logger(monName, "Error found")
+			alerted = true
 		}
 	}
 
 	return
 }
 
-func RunChecks() bool {
+func RunChecks() (alerted bool) {
 	tools.Logger(monName, "Starting")
 	config := configMonitor()
 
 	for _, lf := range config.Logfiles {
-		checkFile(lf)
+		if checkFile(lf) {
+			alerted = true
+		}
 	}
 
+	if alerted {
+		tools.Logger(monName, "Alert raised")
+	}
 	tools.Logger(monName, "Completed")
-	return false
+	return
 }
