@@ -4,19 +4,17 @@ package xmltools
 import (
 	"encoding/xml"
 	"fmt"
-	"os"
 	"time"
 )
 
-// MonResult groups the data from the monitor script and uses
-// field tags to define the XML tags.
+// MonResult groups the data from the monitor script
 type MonResult struct {
-	HostName   string `xml:"HostName,attr"`
-	MonName    string `xml:"MonName"`
-	TimeRcvd   string `xml:"TimeRcvd"`
-	TimeRptd   string `xml:"TimeRptd"`
-	AlertLevel int    `xml:"AlertLevel"`
-	Detail     string `xml:"Detail"`
+	HostName   string
+	MonName    string
+	TimeRcvd   string
+	TimeRptd   string
+	AlertLevel int
+	Detail     string
 }
 
 var timeFormat string = "Mon Jan 02 2006 15:04:05 MST"
@@ -30,7 +28,7 @@ func DumpXML(data MonResult) {
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 	}
-	os.Stdout.Write(output)
+	fmt.Println(output)
 }
 
 // CreateAlert takes a MonResult struct and returns it as a string

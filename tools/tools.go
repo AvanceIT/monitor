@@ -44,5 +44,5 @@ func RaiseAlert(alertMessage string, alertLevel int) {
 	alertString := xmltools.CreateAlert(alertData)
 
 	// TODO(JP): Implement client connection in RaiseAlert()
-	fmt.Printf(alertString)
+	fmt.Println(alertString)
 }
