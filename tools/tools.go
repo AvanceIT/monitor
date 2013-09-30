@@ -5,8 +5,10 @@ the monitors and alerts in the monitoring client.
 package tools
 
 import (
+	"encoding/gob"
 	"fmt"
 	"github.com/AvanceIT/monitor/xmltools"
+	"net"
 	"os"
 )
 
@@ -28,7 +30,7 @@ func getMonitorName(alertMessage string) (string, string) {
 	return string(monitorName), alertMessage
 }
 
-// RaiseAlert formats the alertString into an XML message
+// RaiseAlert formats the alertString into an Gob encoded message
 // and passes it to the monitoring server
 func RaiseAlert(alertMessage string, alertLevel int) {
 	var monitorName string
@@ -41,8 +43,18 @@ func RaiseAlert(alertMessage string, alertLevel int) {
 		HostName:   thisHostName,
 		Detail:     alertMessage,
 	}
-	alertString := xmltools.CreateAlert(alertData)
-
-	// TODO(JP): Implement client connection in RaiseAlert()
-	fmt.Println(alertString)
+	srv, err := net.Dial("tcp", "192.168.0.5:2468")
+	if err != nil {
+		fmt.Printf("Error connecting: %v\n", err)
+		//return
+	} else {
+		fmt.Println("connected")
+	}
+	defer srv.Close()
+	fmt.Printf("%+v\n", alertData)
+	enc := gob.NewEncoder(srv)
+	err = enc.Encode(&alertData)
+	if err != nil {
+		fmt.Printf("encode error: %v\n", err)
+	}
 }
