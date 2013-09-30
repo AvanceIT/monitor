@@ -9,7 +9,6 @@ import (
 	"github.com/AvanceIT/monitor/tools"
 	"os"
 	"strings"
-	"time"
 )
 
 const (
@@ -60,31 +59,35 @@ func (lf logFile) checkFile() {
 	}
 }
 
-func checker(queue <-chan *logFile, done chan<- *logFile) {
+func checker(queue <-chan *logFile, done chan<- int) {
 	for lfile := range queue {
 		message := "Checking " + lfile.Filename
 		tools.Logger(monName, message)
 		lfile.checkFile()
-		time.Sleep(100 * time.Nanosecond)
-		done <- lfile
+		done <- 1
 	}
 }
 
 func RunChecks() (alerted bool) {
 	tools.Logger(monName, "Starting")
+	var j int = 0
 	config := configMonitor()
-	queue, done := make(chan *logFile), make(chan *logFile)
-
-	for i := 0; i < numCheckers; i++ {
-		go checker(queue, done)
-	}
+	queue := make(chan *logFile)
+	done := make(chan int, numCheckers)
 
 	for _, lf := range config.Logfiles {
 		var lfile logFile
 		lfile.Filename = lf
+		if j < numCheckers {
+			go checker(queue, done)
+			j++
+		}
 		queue <- &lfile
 	}
-	<-done
+
+	for i := 0; i < j; i++ {
+		<-done
+	}
 
 	tools.Logger(monName, "Completed")
 	return
