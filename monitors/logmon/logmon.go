@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	numCheckers = 4 // Number of log files to check simultaneously
-)
-
 var monName string = "logmon"
 
 type configOptions struct {
@@ -60,32 +56,31 @@ func (lf logFile) checkFile() {
 }
 
 func checker(queue <-chan *logFile, done chan<- int) {
-	for lfile := range queue {
-		message := "Checking " + lfile.Filename
-		tools.Logger(monName, message)
-		lfile.checkFile()
-		done <- 1
-	}
+	lfile := <-queue
+	message := "Checking " + lfile.Filename
+	tools.Logger(monName, message)
+	lfile.checkFile()
+	done <- 1
 }
 
 func RunChecks() (alerted bool) {
 	tools.Logger(monName, "Starting")
-	var j int = 0
 	config := configMonitor()
 	queue := make(chan *logFile)
-	done := make(chan int, numCheckers)
+	done := make(chan int)
+	numCheckers := len(config.Logfiles)
+
+	for i := 0; i < numCheckers; i++ {
+		go checker(queue, done)
+	}
 
 	for _, lf := range config.Logfiles {
 		var lfile logFile
 		lfile.Filename = lf
-		if j < numCheckers {
-			go checker(queue, done)
-			j++
-		}
 		queue <- &lfile
 	}
 
-	for i := 0; i < j; i++ {
+	for i := 0; i < numCheckers; i++ {
 		<-done
 	}
 
