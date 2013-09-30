@@ -46,12 +46,9 @@ func RaiseAlert(alertMessage string, alertLevel int) {
 	srv, err := net.Dial("tcp", "192.168.0.5:2468")
 	if err != nil {
 		fmt.Printf("Error connecting: %v\n", err)
-		//return
-	} else {
-		fmt.Println("connected")
+		return
 	}
 	defer srv.Close()
-	fmt.Printf("%+v\n", alertData)
 	enc := gob.NewEncoder(srv)
 	err = enc.Encode(&alertData)
 	if err != nil {

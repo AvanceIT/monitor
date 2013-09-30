@@ -9,6 +9,7 @@ import (
 	"github.com/AvanceIT/monitor/tools"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -64,6 +65,7 @@ func checker(queue <-chan *logFile, done chan<- *logFile) {
 		message := "Checking " + lfile.Filename
 		tools.Logger(monName, message)
 		lfile.checkFile()
+		time.Sleep(100 * time.Nanosecond)
 		done <- lfile
 	}
 }
@@ -82,6 +84,7 @@ func RunChecks() (alerted bool) {
 		lfile.Filename = lf
 		queue <- &lfile
 	}
+	<-done
 
 	tools.Logger(monName, "Completed")
 	return
