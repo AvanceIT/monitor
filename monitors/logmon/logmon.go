@@ -12,6 +12,7 @@ import (
 )
 
 var monName string = "logmon"
+var alerted bool = false
 
 type configOptions struct {
 	Logfiles []string
@@ -34,11 +35,11 @@ func configMonitor() configOptions {
 	return config
 }
 
-func (lf logFile) checkFile() {
+func (lf logFile) checkFile() logFile {
 	lfile, err := os.Open(lf.Filename)
 	if err != nil {
 		tools.Logger(monName, "Unable to open logfile : "+lf.Filename)
-		return
+		return lf
 	}
 	defer lfile.Close()
 
@@ -53,35 +54,48 @@ func (lf logFile) checkFile() {
 			lf.Errors = true
 		}
 	}
+	return lf
 }
 
-func checker(queue <-chan *logFile, done chan<- int) {
+func checker(queue <-chan logFile, done chan<- int, alert chan<- int) {
 	lfile := <-queue
 	message := "Checking " + lfile.Filename
 	tools.Logger(monName, message)
-	lfile.checkFile()
+	lfile = lfile.checkFile()
+	if lfile.Errors {
+		alert <- 1
+	}
 	done <- 1
 }
 
 func RunChecks() (alerted bool) {
 	tools.Logger(monName, "Starting")
 	config := configMonitor()
-	queue := make(chan *logFile)
+	queue := make(chan logFile)
 	done := make(chan int)
+	alert := make(chan int)
 	numCheckers := len(config.Logfiles)
 
+	// Start a checker for each log file listed in the config file.
 	for i := 0; i < numCheckers; i++ {
-		go checker(queue, done)
+		go checker(queue, done, alert)
 	}
 
+	// Populate the queue with the log files.
 	for _, lf := range config.Logfiles {
 		var lfile logFile
 		lfile.Filename = lf
-		queue <- &lfile
+		queue <- lfile
 	}
 
+	// Wait for all the checkers to finish and listen for any alerts
 	for i := 0; i < numCheckers; i++ {
-		<-done
+		select {
+		case <-done:
+			continue
+		case <-alert:
+			alerted = true
+		}
 	}
 
 	tools.Logger(monName, "Completed")
